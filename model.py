@@ -7,7 +7,7 @@ from bindsnet.network import Network
 from bindsnet.network.nodes import Input, LIFNodes, DiehlAndCookNodes
 from bindsnet.network.topology import Connection
 
-class DiehlAndCook2015(Network):
+class DigitNet(Network):
     def __init__(
         self,
         n_inpt: int,
