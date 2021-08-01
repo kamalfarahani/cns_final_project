@@ -15,8 +15,8 @@ from model import DigitNet
 seed = 0
 n_neurons = 100
 n_epochs = 1
-n_test = 100
-n_train = 600
+n_test = 10000
+n_train = 60000
 n_workers = -1
 exc = 22.5
 inh = 120
