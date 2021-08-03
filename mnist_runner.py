@@ -78,14 +78,12 @@ train_dataset = MNIST(
 # Record spikes during the simulation.
 spike_record = torch.zeros((update_interval, int(time / dt), n_neurons), device=device)
 
-# Neuron assignments and spike proportions.
+# Neuron assignments
 n_classes = 10
 assignments = -torch.ones(n_neurons, device=device)
-proportions = torch.zeros((n_neurons, n_classes), device=device)
-rates = torch.zeros((n_neurons, n_classes), device=device)
 
 # Sequence of accuracy estimates.
-accuracy = {"all": [], "proportion": []}
+accuracy = { "all": [] }
 
 spikes = {}
 for layer in set(network.layers):
@@ -119,22 +117,11 @@ for epoch in range(n_epochs):
             all_activity_pred = all_activity(
                 spikes=spike_record, assignments=assignments, n_labels=n_classes
             )
-            proportion_pred = proportion_weighting(
-                spikes=spike_record,
-                assignments=assignments,
-                proportions=proportions,
-                n_labels=n_classes,
-            )
 
             # Compute network accuracy according to available classification strategies.
             accuracy["all"].append(
                 100
                 * torch.sum(label_tensor.long() == all_activity_pred).item()
-                / len(label_tensor)
-            )
-            accuracy["proportion"].append(
-                100
-                * torch.sum(label_tensor.long() == proportion_pred).item()
                 / len(label_tensor)
             )
 
@@ -145,20 +132,12 @@ for epoch in range(n_epochs):
                     np.max(accuracy["all"]),
                 )
             )
-            print(
-                "Proportion weighting accuracy: {} (last), {} (average), {} (best)".format(
-                    accuracy["proportion"][-1],
-                    np.mean(accuracy["proportion"]),
-                    np.max(accuracy["proportion"]),
-                )
-            )
 
             # Assign labels to excitatory layer neurons.
-            assignments, proportions, rates = assign_labels(
+            assignments, _, _ = assign_labels(
                 spikes=spike_record,
                 labels=label_tensor,
                 n_labels=n_classes,
-                rates=rates,
             )
 
             labels = []
@@ -189,7 +168,7 @@ test_dataset = MNIST(
     ),
 )
 
-accuracy = {"all": 0, "proportion": 0}
+accuracy = { "all": 0 }
 
 spike_record = torch.zeros((1, int(time / dt), n_neurons), device=device)
 
@@ -217,25 +196,14 @@ for step, batch in enumerate(test_dataset):
     all_activity_pred = all_activity(
         spikes=spike_record, assignments=assignments, n_labels=n_classes
     )
-    proportion_pred = proportion_weighting(
-        spikes=spike_record,
-        assignments=assignments,
-        proportions=proportions,
-        n_labels=n_classes,
-    )
 
     # Compute network accuracy according to available classification strategies.
     accuracy["all"] += float(torch.sum(label_tensor.long() == all_activity_pred).item())
-    accuracy["proportion"] += float(
-        torch.sum(label_tensor.long() == proportion_pred).item()
-    )
 
     network.reset_state_variables()
     pbar.set_description_str("Test progress: ")
     pbar.update()
 
 print("All activity accuracy: {}".format((accuracy["all"] / n_test)))
-print("Proportion weighting accuracy: {} \n".format((accuracy["proportion"] / n_test)))
-
 
 print("Testing complete.\n")
