@@ -4,8 +4,11 @@ from typing import Optional, Union, Sequence, Iterable
 
 from bindsnet.learning import PostPre
 from bindsnet.network import Network
-from bindsnet.network.nodes import Input, LIFNodes, DiehlAndCookNodes
+from bindsnet.network.nodes import Input, LIFNodes
 from bindsnet.network.topology import Connection
+
+from nodes import AdaptiveThresholdLIF
+
 
 class DigitNet(Network):
     def __init__(
@@ -37,7 +40,7 @@ class DigitNet(Network):
         input_layer = Input(
             n=self.n_inpt, shape=self.inpt_shape, traces=True, tc_trace=20.0
         )
-        exc_layer = DiehlAndCookNodes(
+        exc_layer = AdaptiveThresholdLIF(
             n=self.n_neurons,
             traces=True,
             rest=-65.0,
